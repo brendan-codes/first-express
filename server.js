@@ -1,21 +1,44 @@
 // imports and requires
 const express = require('express');
 const app = express();
+const mongoose = require('mongoose');
+const cors = require('cors');
 
-// middleware to use json for http
-// middleware .use() .set()
 app.use(express.json());
+app.use(cors());
 
-
-
-
-app.get('/api/names/:id', (req, res) => {
-    res.json({
-        name: "Brendan",
-        id: req.params.id
-    })
+// connects to db and suppress error messages
+mongoose.connect('mongodb://localhost/my-first-mongoose', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
 })
 
+// creates structure for the documents in our collections
+const DogSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        minlength: [2, "Your dog's name must be 2 or more characters!"]
+    },
+    color: String,
+}, {timestamps: true})
+
+// creates the model that gives us CRUD access to our
+const Dog = mongoose.model("Dog", DogSchema);
+
+
+app.get('/api/dogs', (req, res)=> {
+    Dog.find()
+        .then(data => res.json(data))
+        .catch(err => res.json(err))
+})
+
+app.post('/api/dogs', (req, res) => {
+    Dog.create(req.body)
+        .then(data => res.json(data))
+        .catch(err => res.json(err))
+})
 
 
 
